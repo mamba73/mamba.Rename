@@ -5,27 +5,25 @@ This mod enhances block renaming in Space Engineers by adding advanced controls 
 [*][url=https://steamcommunity.com/sharedfiles/filedetails/?id=2149516482]Advanced Block Renaming (Regex Renamer)[/url] by Marcy ([url=https://steamcommunity.com/id/stopsearchingrandomurls]profile[/url]) – a great regex-based tool that served as additional inspiration.
 [/list]
 My version builds on these ideas with new features like directional thruster renaming, group-based numbering, and a centralized numbering logic tailored for organizing complex builds.
-
 [h1]Changelog & Fixes[/h1]
-[b]v1.5.5 - Latest Update[/b]
+[b]v1.5.12 - Latest Update[/b]
 [list]
-[*] [url=https://steamcommunity.com/sharedfiles/filedetails/changelog/3630278266]Change Notes[/url], removed all o Changelog from here to keep description smooth.
+[*] [b]NEW:[/b] Number Separator now allows empty strings. You can now use sequential numbering without any spaces (e.g., [b]Battery01[/b]) by leaving the separator field empty.
+[*] [url=https://steamcommunity.com/sharedfiles/filedetails/changelog/3630278266]Detailed Change Notes[/url]
 [/list]
-
 [h1]How to Use This Mod[/h1]
 [list]
 [*]Subscribe and add it to your world's mod list.
 [*]Select one or more blocks in the terminal.
 [*]New controls appear at the bottom. Set your template and apply!
 [/list]
-
 [h1]Features[/h1]
 [list]
 [*][b]Directional Thruster Renaming[/b] – Renames based on thrust direction (F, B, U, D, L, R) using "{0}" template.
 [*][b]Sequential Numbering[/b] – Advanced numbering with adjustable digit format (e.g., "001").
 [*][b]Auto-Continue & Grouping[/b] – Smart counters that remember where you left off per grid or per block type.
+[*][b]Flexible Separators[/b] – Full control over the character between name and number, including completely empty separators.
 [/list]
-
 [h1]Example Usage & Benefits[/h1]
 [table]
 [tr]
@@ -44,6 +42,11 @@ My version builds on these ideas with new features like directional thruster ren
 [td]Battery 01, Battery 02... (Keeps other blocks' counters untouched)[/td]
 [/tr]
 [tr]
+[td][b]Compact Naming[/b][/td]
+[td][b]Separator: (empty)[/b] + Number Suffix[/td]
+[td][b]Battery01, Battery02...[/b] (No spaces between name and number)[/td]
+[/tr]
+[tr]
 [td]Clean Organization[/td]
 [td]Separator " _ " + Number Suffix[/td]
 [td]Cargo_01, Cargo_02... (Professional look without manual typing)[/td]
@@ -59,7 +62,6 @@ My version builds on these ideas with new features like directional thruster ren
 [td]Starts from where you left off, even if you select new blocks later.[/td]
 [/tr]
 [/table]
-
 [h1]Important: Terminal Input Limitations[/h1]
 [b]Note for non-US Keyboard users (e.g., Croatian, German, etc.):[/b]
 The Space Engineers terminal [b]does not allow[/b] the input of characters that require the [b]AltGr[/b] key combination.
@@ -67,15 +69,13 @@ The Space Engineers terminal [b]does not allow[/b] the input of characters that 
 [*] Characters like [b] \ | [ ] { } < > [/b] cannot be typed directly into the mod's textboxes if your layout requires AltGr (e.g., [b]AltGr + Q[/b] for backslash).
 [*] [b]Workaround:[/b] If you need these characters for Regex patterns, type them in Notepad and use [b]Ctrl+V[/b] to paste them into the game's textbox.
 [/list]
-
 [h1]Regex Renaming Guide[/h1]
 Regex (Regular Expressions) is a powerful way to bulk-replace parts of names using patterns. The mod uses [b]C# .NET syntax[/b].
 [list]
 [*] [b]Wildcards:[/b] [b].[/b] (any single char), [b].[/b] (everything)
-[*] [b]Groups:[/b] Use [b]b[/b] to capture parts of the name, and [b]$1, $2, $3[/b] to replace them.
+[*] [b]Groups:[/b] Use b[/b] to capture parts of the name, and [b]$1, $2, $3[/b] to replace them.
 [*] [b]No quotes needed:[/b] Just enter the pattern directly into the textboxes.
 [/list]
-
 [b]Common Pattern Examples:[/b]
 [table]
 [tr]
@@ -115,19 +115,19 @@ Regex (Regular Expressions) is a powerful way to bulk-replace parts of names usi
 [td]Connector - Left → Connector[/td]
 [/tr]
 [/table]
-[list]
-[*] Capture groups use [b]$1, $2[/b] syntax.
-[*] [b]No quotes[/b] needed in textboxes.
-[/list]
-
 [i]⚠️ [b]Important:[/b] Test on [b]ONE[/b] block first! For complex patterns, refer to the [url=learn.microsoft.com].NET Regex Documentation[/url].[/i]
-
+[h1]Upcoming Features – Roadmap[/h1]
+[list]
+[*] [b]1. Undo Last Operation[/b] – Revert accidental mass changes.
+[*] [b]2. Sort & Number[/b] – Sequential numbering based on X/Y/Z position or Name.
+[*] [b]3. Preview / Test Mode[/b] – See "Old -> New" list before applying.
+[*] [b]4. Global Grid Filter[/b] – Rename everything matching a term without manual selection.
+[/list]
 [h1]Limitations[/h1]
 [list]
 [*]For directional renaming, you [b]must[/b] be in the main pilot seat/cockpit for the grid to correctly calculate vectors.
 [*]Block groups are read-only in ModAPI.
 [/list]
-
 [h1]Notes[/h1]
 [list]
 [*]Designed for PC/Steam version of Space Engineers.
@@ -135,15 +135,3 @@ Regex (Regular Expressions) is a powerful way to bulk-replace parts of names usi
 [*]Feedback and suggestions are welcome in the comments!
 [/list]
 Enjoy cleaner terminals and perfectly organized ships! 🚀
-
-[h1]Upcoming Features – Roadmap[/h1]
-[list]
-[*] [b]1. Undo Last Operation[/b] – Revert accidental mass changes.
-[i]Issue: Memory load & potential desync if names change externally.[/i]
-[*] [b]2. Sort & Number[/b] – Sequential numbering based on X/Y/Z position or Name.
-[i]Issue: Network overhead when sending large sorted data batches.[/i]
-[*] [b]3. Preview / Test Mode[/b] – See "Old -> New" list before applying.
-[i]Issue: SE UI limitations often close the terminal when popups open.[/i]
-[*] [b]4. Global Grid Filter[/b] – Rename everything matching a term without manual selection.
-[i]Issue: Performance impact on large grids; requires batch processing.[/i]
-[/list]
