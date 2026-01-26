@@ -1,0 +1,60 @@
+[b]Regex Renaming Guide[/b]
+
+The Regex section has TWO textboxes:
+[list]
+[*][b]"Find (Regular Expression)"[/b] - Enter your regex pattern here
+[*][b]"Replace With"[/b] - Enter replacement text here
+[/list]
+
+[b]Examples:[/b]
+
+[b]Example 1: Remove all numbers[/b]
+[list]
+[*]Find: [code]\d+[/code]
+[*]Replace With: (leave empty)
+[*]Result: [code]Gyroscope 123[/code] → [code]Gyroscope[/code]
+[/list]
+
+[b]Example 2: Replace "Small" with "Large"[/b]
+[list]
+[*]Find: [code]Small[/code]
+[*]Replace With: [code]Large[/code]
+[*]Result: [code]Small Atmospheric Thruster[/code] → [code]Large Atmospheric Thruster[/code]
+[/list]
+
+[b]Example 3: Add prefix using capture groups[/b]
+[list]
+[*]Find: [code](.*)[/code]
+[*]Replace With: [code]Main $1[/code]
+[*]Result: [code]Battery[/code] → [code]Main Battery[/code]
+[/list]
+
+[b]Example 4: Swap words[/b]
+[list]
+[*]Find: [code](\w+) (\w+)[/code]
+[*]Replace With: [code]$2 $1[/code]
+[*]Result: [code]Hydrogen Tank[/code] → [code]Tank Hydrogen[/code]
+[/list]
+
+[b]Example 5: Remove everything after a dash[/b]
+[list]
+[*]Find: [code] -.*[/code]
+[*]Replace With: (empty)
+[*]Result: [code]Connector - Left Side[/code] → [code]Connector[/code]
+[/list]
+
+[b]Example 6: Extract block type only[/b]
+[list]
+[*]Find: [code].*\s(\w+)$[/code]
+[*]Replace With: [code]$1[/code]
+[*]Result: [code]Large Hydrogen Tank[/code] → [code]Tank[/code]
+[/list]
+
+[b]Important Notes:[/b]
+[list]
+[*][b]NO quotes needed[/b] - just enter the pattern directly
+[*]Uses [b]C# Regex syntax[/b] (not JavaScript/Python)
+[*]Capture groups use [code]$1, $2, $3[/code] (not [code]\1, \2[/code])
+[*][b]Test on ONE block first[/b] before applying to multiple blocks
+[*]For complex patterns, refer to [url=https://learn.microsoft.com/en-us/dotnet/standard/base-types/regular-expression-language-quick-reference].NET Regex documentation[/url]
+[/list]

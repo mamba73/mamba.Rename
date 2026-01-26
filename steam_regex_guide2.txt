@@ -1,0 +1,55 @@
+[h1]Regex Renaming Guide[/h1]
+Regex (Regular Expressions) is a powerful way to bulk-replace parts of names using patterns. The mod uses [b]C# .NET syntax[/b].
+[list]
+[*] [b]Wildcards:[/b] [b].[/b] (any single char), [b].[/b] (everything)
+[*] [b]Groups:[/b] Use [b]b[/b] to capture parts of the name, and [b]$1, $2, $3[/b] to replace them.
+[*] [b]No quotes needed:[/b] Just enter the pattern directly into the textboxes.
+[/list]
+
+[b]Common Pattern Examples:[/b]
+[table]
+[tr]
+[th]Goal[/th]
+[th]Find (Pattern)[/th]
+[th]Replace With[/th]
+[th]Example Result[/th]
+[/tr]
+[tr]
+[td]Clean suffix[/td]
+[td][code]Thruster.[/code][/td]
+[td][code]Thruster[/code][/td]
+[td]Thruster Large Atmo → Thruster[/td]
+[/tr]
+[tr]
+[td]Remove numbers[/td]
+[td][code]\d+[/code][/td]
+[td](leave empty)[/td]
+[td]Gyroscope 123 → Gyroscope[/td]
+[/tr]
+[tr]
+[td]Add Prefix[/td]
+[td]code[/code][/td]
+[td][code]Main $1[/code][/td]
+[td]Battery → Main Battery[/td]
+[/tr]
+[tr]
+[td]Swap words[/td]
+[td]code (\w+)[/code][/td]
+[td][code]$2 $1[/code][/td]
+[td]Hydrogen Tank → Tank Hydrogen[/td]
+[/tr]
+[tr]
+[td]Remove after dash[/td]
+[td][code] -.[/code][/td]
+[td](leave empty)[/td]
+[td]Connector - Left → Connector[/td]
+[/tr]
+[/table]
+[list]
+[*] Uses [url=https://learn.microsoft.com/en-us/dotnet/standard/base-types/regular-expression-language-quick-reference]C# .NET Regex Syntax[/url].
+[*] Capture groups use [b]$1, $2[/b] syntax.
+[*] [b]No quotes[/b] needed in textboxes.
+[*] [b]Test on ONE block[/b] before bulk renaming!
+[/list]
+
+[i]⚠️ [b]Important:[/b] Test on [b]ONE[/b] block first! For complex patterns, refer to the [url=learn.microsoft.com].NET Regex Documentation[/url].[/i]
