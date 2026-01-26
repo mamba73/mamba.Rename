@@ -18,7 +18,7 @@ namespace BlockRenaming
     [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation)]
     public class BlockRenamerCore : MySessionComponentBase
     {
-        private const string MOD_VERSION = "1.5.5";
+        private const string MOD_VERSION = "1.5.11";
         public const ushort NETWORK_ID = 58432;
 
         private bool _isInitialized = false;
@@ -41,7 +41,7 @@ namespace BlockRenaming
         
         private static string GlobalThrusterTemplate = "Thruster {0}";
 
-        // NEW FEATURE: Auto-continue numbering toggle
+        // Auto-continue numbering toggle
         private static bool AutoContinueNumbering = true; // Default ON
         
         // Control lists
@@ -205,7 +205,7 @@ namespace BlockRenaming
             };
             list.Add(counterTxt);
 
-            // NEW FEATURE: Current counter status label
+            // Current counter status label
             var counterStatusLabel = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlLabel, IMyTerminalBlock>("Renamer_CounterStatusLabel");
             counterStatusLabel.Enabled = (b) => { 
                 counterStatusLabel.Label = MyStringId.GetOrCompute(GetCurrentCounterStatus(b));
@@ -214,7 +214,7 @@ namespace BlockRenaming
             counterStatusLabel.SupportsMultipleBlocks = false;
             list.Add(counterStatusLabel);
 
-            // NEW FEATURE: Auto-continue checkbox
+            // Auto-continue checkbox
             var autoContinueCheckbox = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, IMyTerminalBlock>("Renamer_AutoContinueCheckbox");
             autoContinueCheckbox.Enabled = (b) => { return true; };
             autoContinueCheckbox.SupportsMultipleBlocks = true;
@@ -224,7 +224,7 @@ namespace BlockRenaming
             autoContinueCheckbox.Setter = (b, value) => AutoContinueNumbering = value;
             list.Add(autoContinueCheckbox);            
 
-            // NEW FEATURE: Number separator textbox
+            // Number separator textbox
             var separatorTxt = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlTextbox, IMyTerminalBlock>("Renamer_NumberSeparatorTextbox");
             separatorTxt.Enabled = (b) => { return true; };
             separatorTxt.SupportsMultipleBlocks = true;
@@ -238,14 +238,12 @@ namespace BlockRenaming
             };
             separatorTxt.Setter = (b, Builder) =>
             {
-                string newValue = Builder.ToString();
-                if (string.IsNullOrEmpty(newValue))
-                    newValue = "";
-                TempNumberSeparator[b] = newValue;
+                // Directly saving what's in the builder, even if it's ""
+                TempNumberSeparator[b] = Builder.ToString();
             };
             list.Add(separatorTxt);
 
-            // NEW FEATURE: Group by Block Type checkbox
+            // Group by Block Type checkbox
             var groupCheckbox = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, IMyTerminalBlock>("Renamer_GroupByTypeCheckbox");
             groupCheckbox.Enabled = (b) => { return true; };
             groupCheckbox.SupportsMultipleBlocks = true;
@@ -405,14 +403,13 @@ namespace BlockRenaming
 
         private void ProcessNumbering(IMyTerminalBlock block, bool isPrefix)
         {
-            // FIX: Declarations at the top to fix compiler errors
             long gridId = block.CubeGrid.EntityId;
             string format;
             if (!TempCounterFormat.TryGetValue(block, out format))
                 format = "01";
             
             string separator;
-            if (!TempNumberSeparator.TryGetValue(block, out separator) || string.IsNullOrEmpty(separator))
+            if (!TempNumberSeparator.TryGetValue(block, out separator))
                 separator = " ";
 
             if (!AutoContinueNumbering)
