@@ -1,13 +1,15 @@
 ﻿// Data/Scripts/BlockRenaming/BlockRenamerCore.cs
 //
-// CHANGELOG v1.5.12:
+// CHANGELOG v1.5.14:
 // - [NEW] ApplyAction() method extracted from OnMessageReceived to avoid code duplication.
-// - [NEW] SendNetworkRequest() now checks MyAPIGateway.Session.IsServer before sending
-//         a network message. If true (singleplayer, host, or Pulsar), the action is applied
-//         directly via ApplyAction() without going through the network layer.
-//         This fixes the mod not working in Pulsar and other single-instance environments.
+// - [FIXED] SendNetworkRequest() now always applies actions directly via ApplyAction()
+//           instead of routing through a custom network layer.
+//           Root cause: Pulsar is a client-side plugin — the server never has the mod's
+//           NETWORK_ID handler registered, so all network messages were silently dropped.
+//           Space Engineers natively syncs CustomName between client and server, so
+//           direct application works correctly in singleplayer, Torch+Pulsar, and MP.
 // - [CHANGED] OnMessageReceived() now delegates to ApplyAction() instead of
-//             containing its own switch block.
+//             containing its own switch block. Kept registered but effectively unused.
 //
 using System;
 using System.Collections.Generic;
@@ -28,7 +30,7 @@ namespace BlockRenaming
     [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation)]
     public class BlockRenamerCore : MySessionComponentBase
     {
-        private const string MOD_VERSION = "1.5.12";
+        private const string MOD_VERSION = "1.5.14";
         public const ushort NETWORK_ID = 58432;
 
         private bool _isInitialized = false;
@@ -582,22 +584,16 @@ namespace BlockRenaming
 
         private void SendNetworkRequest(IMyTerminalBlock block, string action, string value)
         {
-            // If this client IS the server, apply the action directly — no network needed.
-            // This covers: singleplayer, host in listen-server, and environments like Pulsar
-            // where there is no separate dedicated server process.
-            if (MyAPIGateway.Session.IsServer)
-            {
-                ApplyAction(block, action, value);
-                return;
-            }
-
-            // Dedicated multiplayer: send the request to the server.
-            var data = string.Format("{0}|{1}|{2}", block.EntityId, action, value);
-            MyAPIGateway.Multiplayer.SendMessageToServer(NETWORK_ID, Encoding.UTF8.GetBytes(data));
+            // Always apply directly — SE engine natively syncs CustomName to the server.
+            // A custom network layer breaks Pulsar because Pulsar is a client-side plugin:
+            // the server never has the mod's NETWORK_ID handler registered, so any
+            // SendMessageToServer call is silently dropped on the server side.
+            ApplyAction(block, action, value);
         }
 
-        // [CHANGED] OnMessageReceived now delegates to ApplyAction() instead of
-        // containing its own switch block. Logic is identical; duplication removed.
+        // [CHANGED] OnMessageReceived now delegates to ApplyAction().
+        // Kept registered for compatibility but effectively unused since
+        // SendNetworkRequest no longer sends network messages.
         private void OnMessageReceived(ushort id, byte[] data, ulong sender, bool fromServer)
         {
             if (!MyAPIGateway.Session.IsServer)
