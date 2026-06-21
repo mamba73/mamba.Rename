@@ -9,8 +9,7 @@ My version builds on these ideas with new features like directional thruster ren
 [h1]Changelog & Fixes[/h1]
 [b]v1.5.15 - Latest Update[/b]
 [list]
-[*] [b]NEW:[/b] Show/Hide Rename Controls toggle button — all renaming controls are now hidden by default and only appear after a click, keeping the terminal panel clean (fixes overlap with the new vanilla [b]Services Terminal[/b]'s Precision Mode controls).
-[*] Thanks to [url=https://steamcommunity.com/profiles/76561199591377995]dannydamnboy[/url] for the feedback that helped find this!
+[*] [b]NEW:[/b] FIX: now work on Pulsar plugin, single world and with dedicated / torch server
 [*] [url=https://steamcommunity.com/sharedfiles/filedetails/changelog/3630278266]Detailed Change Notes[/url]
 [/list]
 
