@@ -5,6 +5,11 @@ An advanced renaming utility for **Space Engineers** (ModAPI) that streamlines g
 [![Steam Workshop](https://img.shields.io)](https://steamcommunity.com/sharedfiles/filedetails/?id=3630278266)
 [![API](https://img.shields.io)](https://github.com)
 
+## 🆕 What's New (v1.5.15)
+
+- **Show/Hide Rename Controls toggle**: All renaming controls are now hidden by default. A single always-visible button lets you toggle them on/off per session, keeping the terminal panel clean — especially on blocks that already have their own custom UI (e.g. the new vanilla **Services Terminal**'s Precision Mode controls from Update 1.209 "Economy 2").
+- Thanks to [dannydamnboy](https://steamcommunity.com/profiles/76561199591377995) for reporting that the Services Terminal's Precision Mode option was being crowded out — this release fixes it!
+
 ## 🌟 Key Features
 
 - **Directional Thruster Renaming**: Automatically detects thruster orientation and renames them using a template (e.g., `Thruster {0}` → `Thruster F`, `Thruster B`).
@@ -27,7 +32,7 @@ An advanced renaming utility for **Space Engineers** (ModAPI) that streamlines g
 
 ## ⚙️ Configuration & Usage
 
-Once installed, select one or more blocks in the terminal to reveal the **Renaming Controls** at the bottom of the panel:
+Once installed, select one or more blocks in the terminal to reveal a **Show/Hide Rename Controls** button at the bottom of the panel. Click it once to expand the full Renaming Controls (click again to collapse them):
 
 1. **New Naming**: Basic Prefix/Suffix/Replace.
 2. **Counter Setup**: Define format (e.g., `001`) and separator (e.g., `_`).

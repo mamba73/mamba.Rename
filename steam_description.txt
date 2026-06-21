@@ -7,9 +7,10 @@ This mod enhances block renaming in Space Engineers by adding advanced controls 
 My version builds on these ideas with new features like directional thruster renaming, group-based numbering, and a centralized numbering logic tailored for organizing complex builds.
 
 [h1]Changelog & Fixes[/h1]
-[b]v1.5.11 - Latest Update[/b]
+[b]v1.5.15 - Latest Update[/b]
 [list]
-[*] [b]NEW:[/b] Number Separator now allows empty strings. You can now use sequential numbering without any spaces (e.g., [b]Battery01[/b]) by leaving the separator field empty.
+[*] [b]NEW:[/b] Show/Hide Rename Controls toggle button — all renaming controls are now hidden by default and only appear after a click, keeping the terminal panel clean (fixes overlap with the new vanilla [b]Services Terminal[/b]'s Precision Mode controls).
+[*] Thanks to [url=https://steamcommunity.com/profiles/76561199591377995]dannydamnboy[/url] for the feedback that helped find this!
 [*] [url=https://steamcommunity.com/sharedfiles/filedetails/changelog/3630278266]Detailed Change Notes[/url]
 [/list]
 
@@ -17,7 +18,7 @@ My version builds on these ideas with new features like directional thruster ren
 [list]
 [*]Subscribe and add it to your world's mod list.
 [*]Select one or more blocks in the terminal.
-[*]New controls appear at the bottom. Set your template and apply!
+[*]Click the [b]Show/Hide Rename Controls[/b] button at the bottom (controls are hidden by default to keep the panel clean). Set your template and apply!
 [/list]
 
 [h1]Features[/h1]
@@ -121,7 +122,7 @@ Regex (Regular Expressions) is a powerful way to bulk-replace parts of names usi
 [td]Connector - Left → Connector[/td]
 [/tr]
 [/table]
-[i]⚠️ [b]Important:[/b] Test on [b]ONE[/b] block first! For complex patterns, refer to the [url=learn.microsoft.com].NET Regex Documentation[/url].[/i]
+[i]⚠️ [b]Important:[/b] Test on [b]ONE[/b] block first! For complex patterns, refer to the [url=https://learn.microsoft.com/en-us/dotnet/standard/base-types/regular-expression-language-quick-reference].NET Regex Documentation[/url].[/i]
 
 [h1]Limitations[/h1]
 [list]
@@ -148,3 +149,8 @@ Enjoy cleaner terminals and perfectly organized ships! 🚀
 [*] [b]4. Global Grid Filter[/b] – Rename everything matching a term without manual selection.
 [i]Issue: Performance impact on large grids; requires batch processing.[/i]
 [/list]
+
+[hr][/hr]
+[h2]☕ Support[/h2]
+If you like this project and want to support development:  
+[url=https://buymeacoffee.com/mamba73]Buy Me a Coffee ☕[/url]
