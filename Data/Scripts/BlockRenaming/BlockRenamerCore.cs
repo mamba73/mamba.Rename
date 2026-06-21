@@ -5,6 +5,11 @@
 //           Controls are created with unique IDs and checked for duplicates before adding.
 // - [NEW] Added "Show Rename Panel" checkbox to hide/show all custom renaming controls.
 //           This allows users to clean up their terminal UI when not using the rename features.
+// - [FIXED] Rename controls now actually hidden by default (visible defaulted to true,
+//           which did not fix the reported Services Terminal / Precision Mode conflict).
+//           Also replaced two duplicated C# 7 local functions (IsPanelVisible) — not
+//           supported under this project's C# 6.0/.NET 4.8 target — with a single
+//           class-level method.
 //
 // CHANGELOG v1.5.14:
 // - [NEW] ApplyAction() method extracted from OnMessageReceived to avoid code duplication.
@@ -184,17 +189,6 @@ namespace BlockRenaming
         {
             var list = new List<IMyTerminalControl>();
 
-            // Helper function to check panel visibility
-            bool IsPanelVisible(IMyTerminalBlock block)
-            {
-                if (block == null)
-                    return true;
-                bool visible;
-                if (!ShowRenamePanel.TryGetValue(block, out visible))
-                    visible = true; // Default to visible
-                return visible;
-            }
-
             // Show Rename Panel checkbox (always visible)
             var showPanelCheckbox = MyAPIGateway.TerminalControls.CreateControl<
                 IMyTerminalControlCheckbox,
@@ -210,7 +204,7 @@ namespace BlockRenaming
             {
                 bool visible;
                 if (!ShowRenamePanel.TryGetValue(b, out visible))
-                    visible = true;
+                    visible = false; // Default to hidden
                 return visible;
             };
             showPanelCheckbox.Setter = (b, value) => ShowRenamePanel[b] = value;
@@ -540,17 +534,6 @@ namespace BlockRenaming
         {
             var list = new List<IMyTerminalControl>();
 
-            // Helper function to check panel visibility
-            bool IsPanelVisible(IMyTerminalBlock block)
-            {
-                if (block == null)
-                    return true;
-                bool visible;
-                if (!ShowRenamePanel.TryGetValue(block, out visible))
-                    visible = true; // Default to visible
-                return visible;
-            }
-
             var thrusterSep = MyAPIGateway.TerminalControls.CreateControl<
                 IMyTerminalControlSeparator,
                 IMyThrust
@@ -797,6 +780,28 @@ namespace BlockRenaming
             if (GridNumberCounters.TryGetValue(block.CubeGrid.EntityId, out current))
                 return string.Format("Next Number: {0}", current);
             return "Next: Ready";
+        }
+
+        // ─────────────────────────────────────────────────────────────
+        //  Rename panel visibility helper
+        //
+        //  [FIXED v1.5.15] Was a C# 7 local function duplicated in both
+        //  CreateControlList() and CreateThrusterControlList() — replaced
+        //  with a single class-level method (C# 6.0 compatible). Default
+        //  changed from visible=true to visible=false: rename controls
+        //  must stay HIDDEN until the user explicitly enables them via the
+        //  Show Rename Panel checkbox (this was the actual point of the
+        //  v1.5.15 fix for the Services Terminal Precision Mode conflict).
+        // ─────────────────────────────────────────────────────────────
+
+        private bool IsPanelVisible(IMyTerminalBlock block)
+        {
+            if (block == null)
+                return false;
+            bool visible;
+            if (!ShowRenamePanel.TryGetValue(block, out visible))
+                visible = false; // Default to hidden
+            return visible;
         }
     }
 }
