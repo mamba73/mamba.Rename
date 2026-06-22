@@ -1,0 +1,53 @@
+# MAMBA MODDING SUPREME ARCHITECTURAL & FORMATTING STANDARDS
+  # VERSION: 2026-06-22
+  # STATUS: MANDATORY / SUPREME LAW FOR SPACE ENGINEERS MODDING
+
+  global_protocol:
+    supreme_rule: >
+      ENVIRONMENT-BASED CODE DELIVERY (ZERO HALUCINATIONS). 
+      - Context A (IDE/Workspace): You are permitted to use precise 'Search/Replace' blocks. Placeholders like '// ...' are strictly forbidden.
+      - Context B (Chat/Text-only): You MUST output 100% COMPLETE FILES. Every file must be returned in its entirety, including all original comments, namespace declarations, and logic. If the file is too large, use a Python script to automate the patch.
+    enforcement: "Any violation of the supreme_rule renders the output invalid."
+
+  rules:
+    - rule_id: 1
+      name: "Source File Header & Pathing"
+      specification: "Every .cs file must start with the exact relative file path on line 1 as a comment (e.g., // Data/Scripts/MyStoreBlock.cs)."
+      reasoning: "Ensures absolute traceability between the AI output and the SE Mod physical project structure."
+
+    - rule_id: 2
+      name: "Safe [code] Protocol"
+      specification: >
+        Every major summary, update report, or change log requested in a README format must NOT use triple backticks (```) for internal code examples. 
+        Instead, wrap all code snippets using the exact token [code] at the start AND the exact token [code] at the end (e.g., [code]public override void UpdateAfterSimulation()[code]).
+      reasoning: "Prevents breaking the global Markdown code block delimiter and enables a single-pass 'Find and Replace' workflow."
+
+    - rule_id: 3
+      name: "Language & Syntax Restrictions"
+      specification: "English only for code, comments, variables, and methods. Strictly use C# 6.0 and .NET Framework 4.8 syntax. No modern features (init, file-scoped namespaces, records, etc.)."
+      reasoning: "Mandatory for compatibility with Space Engineers' internal MDK compiler environment."
+
+    - rule_id: 4
+      name: "Namespace & Path Alignment"
+      specification: "Namespaces must strictly follow the physical folder structure. C# logic must reside in Data/Scripts/. Zero mixing of XML logic and C# source."
+      reasoning: "Adheres to the official SE Mod SDK structure, ensuring the game engine correctly maps and loads mod components."
+
+    - rule_id: 5
+      name: "ModAPI & Sandbox Compliance"
+      specification: "Use only official ModAPI (Sandbox.Game, VRage.Game, VRage.ModAPI) namespaces. Reflection and unsafe code are forbidden unless explicitly required for core functionality."
+      reasoning: "Ensures mod stability across game updates and prevents crashes caused by non-publicized internal member access."
+
+    - rule_id: 6
+      name: "Logging Standards"
+      specification: "Use MyLog.Default.WriteLineAndConsole for diagnostics. Always tag logs with the mod name (e.g., [MambaMod-Name]). Zero hardcoding of log strings."
+      reasoning: "Provides uniform, searchable diagnostic output in SpaceEngineers.log."
+
+    - rule_id: 7
+      name: "PB Compatibility Pattern"
+      specification: "Public-facing logic must be implemented via public static wrapper classes or documented public methods, suitable for access via Programmable Block scripts."
+      reasoning: "Promotes mod modularity and allows users to utilize mod features directly in their scripts."
+
+    - rule_id: 8
+      name: "Declaration Integrity"
+      specification: "Strictly forbidden to invent or hallucinate API names. Existing declarations (e.g., IMyStoreBlock, MyGameLogicComponent) must be verified and used exactly as defined in the official SE ModAPI."
+      reasoning: "Prevents compilation errors and ensures seamless integration with the game engine."

@@ -1,5 +1,18 @@
 ﻿// Data/Scripts/BlockRenaming/BlockRenamerCore.cs
 //
+// CHANGELOG v1.5.17:
+// - [FIXED] Show/Hide checkbox now properly refreshes UI when toggled.
+//           Replaced no-op refresh code with actual temporary name change
+//           to trigger terminal control visibility re-evaluation.
+//
+// CHANGELOG v1.5.16:
+// - [FIXED] Show/Hide toggle now correctly hides controls instead of disabling them.
+//           Changed .Enabled to .Visible for all conditional controls.
+// - [FIXED] Main separator is now placed BEFORE the Show/Hide checkbox to properly
+//           separate it from the rest of the renaming controls.
+// - [FIXED] Removed trailing spaces from control IDs to prevent potential UI issues.
+// - [FIXED] Cleaned up syntax errors and stray spaces in the codebase.
+//
 // CHANGELOG v1.5.15:
 // - [FIXED] Terminal controls now safely append without overriding other mods' controls.
 //           Controls are created with unique IDs and checked for duplicates before adding.
@@ -41,7 +54,7 @@ namespace BlockRenaming
     [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation)]
     public class BlockRenamerCore : MySessionComponentBase
     {
-        private const string MOD_VERSION = "1.5.15";
+        private const string MOD_VERSION = "1.5.17";
         public const ushort NETWORK_ID = 58432;
 
         private bool _isInitialized = false;
@@ -189,12 +202,22 @@ namespace BlockRenaming
         {
             var list = new List<IMyTerminalControl>();
 
-            // Show Rename Panel checkbox (always visible)
+            // ─── Separator BEFORE checkbox (always visible)
+            var topSeparator = MyAPIGateway.TerminalControls.CreateControl<
+                IMyTerminalControlSeparator,
+                IMyTerminalBlock
+            >("Renamer_TopSeparator");
+            topSeparator.Visible = (b) => true;
+            topSeparator.SupportsMultipleBlocks = true;
+            list.Add(topSeparator);
+
+            // ─── Show/Hide checkbox (always visible)
             var showPanelCheckbox = MyAPIGateway.TerminalControls.CreateControl<
                 IMyTerminalControlCheckbox,
                 IMyTerminalBlock
             >("Renamer_ShowPanelCheckbox");
             showPanelCheckbox.Enabled = (b) => true;
+            showPanelCheckbox.Visible = (b) => true;
             showPanelCheckbox.SupportsMultipleBlocks = true;
             showPanelCheckbox.Title = MyStringId.GetOrCompute("Show Rename Panel");
             showPanelCheckbox.Tooltip = MyStringId.GetOrCompute(
@@ -204,39 +227,36 @@ namespace BlockRenaming
             {
                 bool visible;
                 if (!ShowRenamePanel.TryGetValue(b, out visible))
-                    visible = false; // Default to hidden
+                    visible = false;
                 return visible;
             };
-            showPanelCheckbox.Setter = (b, value) => ShowRenamePanel[b] = value;
+            showPanelCheckbox.Setter = (b, value) =>
+            {
+                ShowRenamePanel[b] = value;
+                // Force UI refresh by temporarily changing block name
+                string originalName = b.CustomName;
+                b.CustomName = originalName + " ";
+                b.CustomName = originalName;
+            };
             list.Add(showPanelCheckbox);
 
-            // Main separator
-            var separator0 = MyAPIGateway.TerminalControls.CreateControl<
-                IMyTerminalControlSeparator,
-                IMyTerminalBlock
-            >("Renamer_MainSeparator");
-            separator0.Enabled = (b) => IsPanelVisible(b);
-            separator0.SupportsMultipleBlocks = true;
-            list.Add(separator0);
-
-            // Version label
+            // ─── All rename controls (visible only when panel is ON)
             var label0 = MyAPIGateway.TerminalControls.CreateControl<
                 IMyTerminalControlLabel,
                 IMyTerminalBlock
             >("Renamer_Label");
-            label0.Enabled = (b) => IsPanelVisible(b);
+            label0.Visible = (b) => IsPanelVisible(b);
             label0.SupportsMultipleBlocks = true;
             label0.Label = MyStringId.GetOrCompute(
                 string.Format("Block Renaming Controls v{0}", MOD_VERSION)
             );
             list.Add(label0);
 
-            // New name textbox
             var textbox0 = MyAPIGateway.TerminalControls.CreateControl<
                 IMyTerminalControlTextbox,
                 IMyTerminalBlock
             >("Renamer_Textbox");
-            textbox0.Enabled = (b) => IsPanelVisible(b);
+            textbox0.Visible = (b) => IsPanelVisible(b);
             textbox0.SupportsMultipleBlocks = true;
             textbox0.Title = MyStringId.GetOrCompute("New Naming");
             textbox0.Getter = (b) =>
@@ -252,12 +272,11 @@ namespace BlockRenaming
             };
             list.Add(textbox0);
 
-            // Replace button
             var replaceBtn = MyAPIGateway.TerminalControls.CreateControl<
                 IMyTerminalControlButton,
                 IMyTerminalBlock
             >("Renamer_RenameButton");
-            replaceBtn.Enabled = (b) => IsPanelVisible(b);
+            replaceBtn.Visible = (b) => IsPanelVisible(b);
             replaceBtn.SupportsMultipleBlocks = true;
             replaceBtn.Title = MyStringId.GetOrCompute("Replace");
             replaceBtn.Action = (b) =>
@@ -269,12 +288,11 @@ namespace BlockRenaming
             };
             list.Add(replaceBtn);
 
-            // Prefix button
             var prefixBtn = MyAPIGateway.TerminalControls.CreateControl<
                 IMyTerminalControlButton,
                 IMyTerminalBlock
             >("Renamer_PrefixButton");
-            prefixBtn.Enabled = (b) => IsPanelVisible(b);
+            prefixBtn.Visible = (b) => IsPanelVisible(b);
             prefixBtn.SupportsMultipleBlocks = true;
             prefixBtn.Title = MyStringId.GetOrCompute("Prefix");
             prefixBtn.Action = (b) =>
@@ -286,12 +304,11 @@ namespace BlockRenaming
             };
             list.Add(prefixBtn);
 
-            // Suffix button
             var suffixBtn = MyAPIGateway.TerminalControls.CreateControl<
                 IMyTerminalControlButton,
                 IMyTerminalBlock
             >("Renamer_SuffixButton");
-            suffixBtn.Enabled = (b) => IsPanelVisible(b);
+            suffixBtn.Visible = (b) => IsPanelVisible(b);
             suffixBtn.SupportsMultipleBlocks = true;
             suffixBtn.Title = MyStringId.GetOrCompute("Suffix");
             suffixBtn.Action = (b) =>
@@ -303,12 +320,11 @@ namespace BlockRenaming
             };
             list.Add(suffixBtn);
 
-            // Counter format textbox
             var counterTxt = MyAPIGateway.TerminalControls.CreateControl<
                 IMyTerminalControlTextbox,
                 IMyTerminalBlock
             >("Renamer_CounterFormatTextbox");
-            counterTxt.Enabled = (b) => IsPanelVisible(b);
+            counterTxt.Visible = (b) => IsPanelVisible(b);
             counterTxt.SupportsMultipleBlocks = true;
             counterTxt.Title = MyStringId.GetOrCompute("Counter Format (e.g. 01)");
             counterTxt.Getter = (b) =>
@@ -324,25 +340,27 @@ namespace BlockRenaming
             };
             list.Add(counterTxt);
 
-            // Current counter status label
             var counterStatusLabel = MyAPIGateway.TerminalControls.CreateControl<
                 IMyTerminalControlLabel,
                 IMyTerminalBlock
             >("Renamer_CounterStatusLabel");
-            counterStatusLabel.Enabled = (b) =>
+            counterStatusLabel.Visible = (b) =>
             {
-                counterStatusLabel.Label = MyStringId.GetOrCompute(GetCurrentCounterStatus(b));
-                return IsPanelVisible(b);
+                if (IsPanelVisible(b))
+                {
+                    counterStatusLabel.Label = MyStringId.GetOrCompute(GetCurrentCounterStatus(b));
+                    return true;
+                }
+                return false;
             };
             counterStatusLabel.SupportsMultipleBlocks = false;
             list.Add(counterStatusLabel);
 
-            // Auto-continue numbering checkbox
             var autoContinueCheckbox = MyAPIGateway.TerminalControls.CreateControl<
                 IMyTerminalControlCheckbox,
                 IMyTerminalBlock
             >("Renamer_AutoContinueCheckbox");
-            autoContinueCheckbox.Enabled = (b) => IsPanelVisible(b);
+            autoContinueCheckbox.Visible = (b) => IsPanelVisible(b);
             autoContinueCheckbox.SupportsMultipleBlocks = true;
             autoContinueCheckbox.Title = MyStringId.GetOrCompute("Auto Continue Numbering");
             autoContinueCheckbox.Tooltip = MyStringId.GetOrCompute(
@@ -352,12 +370,11 @@ namespace BlockRenaming
             autoContinueCheckbox.Setter = (b, value) => AutoContinueNumbering = value;
             list.Add(autoContinueCheckbox);
 
-            // Number separator textbox
             var separatorTxt = MyAPIGateway.TerminalControls.CreateControl<
                 IMyTerminalControlTextbox,
                 IMyTerminalBlock
             >("Renamer_NumberSeparatorTextbox");
-            separatorTxt.Enabled = (b) => IsPanelVisible(b);
+            separatorTxt.Visible = (b) => IsPanelVisible(b);
             separatorTxt.SupportsMultipleBlocks = true;
             separatorTxt.Title = MyStringId.GetOrCompute("Number Separator (default: space)");
             separatorTxt.Getter = (b) =>
@@ -373,12 +390,11 @@ namespace BlockRenaming
             };
             list.Add(separatorTxt);
 
-            // Group by Block Type checkbox
             var groupCheckbox = MyAPIGateway.TerminalControls.CreateControl<
                 IMyTerminalControlCheckbox,
                 IMyTerminalBlock
             >("Renamer_GroupByTypeCheckbox");
-            groupCheckbox.Enabled = (b) => IsPanelVisible(b);
+            groupCheckbox.Visible = (b) => IsPanelVisible(b);
             groupCheckbox.SupportsMultipleBlocks = true;
             groupCheckbox.Title = MyStringId.GetOrCompute("Group by Block Type");
             groupCheckbox.Tooltip = MyStringId.GetOrCompute(
@@ -393,12 +409,11 @@ namespace BlockRenaming
             };
             list.Add(groupCheckbox);
 
-            // Reset Counter button
             var resetCounterBtn = MyAPIGateway.TerminalControls.CreateControl<
                 IMyTerminalControlButton,
                 IMyTerminalBlock
             >("Renamer_ResetCounterButton");
-            resetCounterBtn.Enabled = (b) => IsPanelVisible(b);
+            resetCounterBtn.Visible = (b) => IsPanelVisible(b);
             resetCounterBtn.SupportsMultipleBlocks = true;
             resetCounterBtn.Title = MyStringId.GetOrCompute("Reset Counter");
             resetCounterBtn.Action = (b) =>
@@ -419,54 +434,50 @@ namespace BlockRenaming
             };
             list.Add(resetCounterBtn);
 
-            // Number Prefix button
             var numPrefixBtn = MyAPIGateway.TerminalControls.CreateControl<
                 IMyTerminalControlButton,
                 IMyTerminalBlock
             >("Renamer_NumberPrefixButton");
-            numPrefixBtn.Enabled = (b) => IsPanelVisible(b);
+            numPrefixBtn.Visible = (b) => IsPanelVisible(b);
             numPrefixBtn.SupportsMultipleBlocks = true;
             numPrefixBtn.Title = MyStringId.GetOrCompute("Number Prefix");
             numPrefixBtn.Action = (b) => ProcessNumbering(b, true);
             list.Add(numPrefixBtn);
 
-            // Number Suffix button
             var numBtn = MyAPIGateway.TerminalControls.CreateControl<
                 IMyTerminalControlButton,
                 IMyTerminalBlock
             >("Renamer_NumberSuffixButton");
-            numBtn.Enabled = (b) => IsPanelVisible(b);
+            numBtn.Visible = (b) => IsPanelVisible(b);
             numBtn.SupportsMultipleBlocks = true;
             numBtn.Title = MyStringId.GetOrCompute("Number Suffix");
             numBtn.Action = (b) => ProcessNumbering(b, false);
             list.Add(numBtn);
 
-            // Reset to default button
             var resetBtn = MyAPIGateway.TerminalControls.CreateControl<
                 IMyTerminalControlButton,
                 IMyTerminalBlock
             >("Renamer_ResetButton");
-            resetBtn.Enabled = (b) => IsPanelVisible(b);
+            resetBtn.Visible = (b) => IsPanelVisible(b);
             resetBtn.SupportsMultipleBlocks = true;
             resetBtn.Title = MyStringId.GetOrCompute("Reset to default");
             resetBtn.Action = (b) => SendNetworkRequest(b, "RESET", "");
             list.Add(resetBtn);
 
-            // Regex section separator
+            // ─── Regex section
             var regexSep = MyAPIGateway.TerminalControls.CreateControl<
                 IMyTerminalControlSeparator,
                 IMyTerminalBlock
             >("RegRen_Separator");
-            regexSep.Enabled = (b) => IsPanelVisible(b);
+            regexSep.Visible = (b) => IsPanelVisible(b);
             regexSep.SupportsMultipleBlocks = true;
             list.Add(regexSep);
 
-            // Regex find textbox
             var findTxt = MyAPIGateway.TerminalControls.CreateControl<
                 IMyTerminalControlTextbox,
                 IMyTerminalBlock
             >("RegRen_FindTextbox");
-            findTxt.Enabled = (b) => IsPanelVisible(b);
+            findTxt.Visible = (b) => IsPanelVisible(b);
             findTxt.SupportsMultipleBlocks = true;
             findTxt.Title = MyStringId.GetOrCompute("Find (Pattern)");
             findTxt.Getter = (b) =>
@@ -482,12 +493,11 @@ namespace BlockRenaming
             };
             list.Add(findTxt);
 
-            // Regex replace-with textbox
             var regexReplaceTxt = MyAPIGateway.TerminalControls.CreateControl<
                 IMyTerminalControlTextbox,
                 IMyTerminalBlock
             >("RegRen_ReplaceWithTextbox");
-            regexReplaceTxt.Enabled = (b) => IsPanelVisible(b);
+            regexReplaceTxt.Visible = (b) => IsPanelVisible(b);
             regexReplaceTxt.SupportsMultipleBlocks = true;
             regexReplaceTxt.Title = MyStringId.GetOrCompute("Replace With");
             regexReplaceTxt.Getter = (b) =>
@@ -503,18 +513,16 @@ namespace BlockRenaming
             };
             list.Add(regexReplaceTxt);
 
-            // Regex replace button
             var regexBtn = MyAPIGateway.TerminalControls.CreateControl<
                 IMyTerminalControlButton,
                 IMyTerminalBlock
             >("RegRen_ReplaceButton_v2");
-            regexBtn.Enabled = (b) => IsPanelVisible(b);
+            regexBtn.Visible = (b) => IsPanelVisible(b);
             regexBtn.SupportsMultipleBlocks = true;
             regexBtn.Title = MyStringId.GetOrCompute("Replace");
             regexBtn.Action = (b) =>
             {
-                string findValue,
-                    replaceValue;
+                string findValue, replaceValue;
                 if (!TempStringFinds.TryGetValue(b, out findValue))
                     findValue = "";
                 if (!TempRegexReplace.TryGetValue(b, out replaceValue))
@@ -522,6 +530,15 @@ namespace BlockRenaming
                 SendNetworkRequest(b, "REGEX", string.Format("{0}#{1}", findValue, replaceValue));
             };
             list.Add(regexBtn);
+
+            // ─── Bottom separator AFTER rename controls (only when visible)
+            var bottomSeparator = MyAPIGateway.TerminalControls.CreateControl<
+                IMyTerminalControlSeparator,
+                IMyTerminalBlock
+            >("Renamer_BottomSeparator");
+            bottomSeparator.Visible = (b) => IsPanelVisible(b);
+            bottomSeparator.SupportsMultipleBlocks = true;
+            list.Add(bottomSeparator);
 
             return list;
         }
@@ -538,7 +555,7 @@ namespace BlockRenaming
                 IMyTerminalControlSeparator,
                 IMyThrust
             >("TR_Separator");
-            thrusterSep.Enabled = (b) => IsPanelVisible(b);
+            thrusterSep.Visible = (b) => IsPanelVisible(b);
             thrusterSep.SupportsMultipleBlocks = true;
             list.Add(thrusterSep);
 
@@ -546,7 +563,7 @@ namespace BlockRenaming
                 IMyTerminalControlTextbox,
                 IMyThrust
             >("TR_TemplateTextbox");
-            thrusterTxt.Enabled = (b) => IsPanelVisible(b);
+            thrusterTxt.Visible = (b) => IsPanelVisible(b);
             thrusterTxt.SupportsMultipleBlocks = true;
             thrusterTxt.Title = MyStringId.GetOrCompute("Template ({0} = direction)");
             thrusterTxt.Getter = (b) => new StringBuilder(GlobalThrusterTemplate);
@@ -557,7 +574,7 @@ namespace BlockRenaming
                 IMyTerminalControlButton,
                 IMyThrust
             >("TR_RenameButton");
-            btn.Enabled = (b) => IsPanelVisible(b);
+            btn.Visible = (b) => IsPanelVisible(b);
             btn.SupportsMultipleBlocks = true;
             btn.Title = MyStringId.GetOrCompute("Rename by Direction");
             btn.Action = (b) => SendNetworkRequest(b, "THRUST", GlobalThrusterTemplate);
@@ -636,27 +653,14 @@ namespace BlockRenaming
 
         // ─────────────────────────────────────────────────────────────
         //  Networking
-        //
-        //  [CHANGED] SendNetworkRequest now detects whether the current
-        //  session is also the server (singleplayer, host, Pulsar).
-        //  If so, it calls ApplyAction() directly, skipping the network
-        //  layer entirely. This fixes the mod in Pulsar and singleplayer.
-        //  In a real dedicated-server multiplayer session the message is
-        //  still sent over the network as before.
         // ─────────────────────────────────────────────────────────────
 
         private void SendNetworkRequest(IMyTerminalBlock block, string action, string value)
         {
             // Always apply directly — SE engine natively syncs CustomName to the server.
-            // A custom network layer breaks Pulsar because Pulsar is a client-side plugin:
-            // the server never has the mod's NETWORK_ID handler registered, so any
-            // SendMessageToServer call is silently dropped on the server side.
             ApplyAction(block, action, value);
         }
 
-        // [CHANGED] OnMessageReceived now delegates to ApplyAction().
-        // Kept registered for compatibility but effectively unused since
-        // SendNetworkRequest no longer sends network messages.
         private void OnMessageReceived(ushort id, byte[] data, ulong sender, bool fromServer)
         {
             if (!MyAPIGateway.Session.IsServer)
@@ -684,8 +688,6 @@ namespace BlockRenaming
             }
         }
 
-        // [NEW] Central action dispatcher used by both SendNetworkRequest (direct path)
-        // and OnMessageReceived (network path). Single source of truth for all rename logic.
         private void ApplyAction(IMyTerminalBlock block, string action, string value)
         {
             switch (action)
@@ -724,7 +726,8 @@ namespace BlockRenaming
                             );
                         }
                         catch
-                        { /* invalid regex — silently ignore */
+                        {
+                            /* invalid regex — silently ignore */
                         }
                     }
                     break;
@@ -784,14 +787,6 @@ namespace BlockRenaming
 
         // ─────────────────────────────────────────────────────────────
         //  Rename panel visibility helper
-        //
-        //  [FIXED v1.5.15] Was a C# 7 local function duplicated in both
-        //  CreateControlList() and CreateThrusterControlList() — replaced
-        //  with a single class-level method (C# 6.0 compatible). Default
-        //  changed from visible=true to visible=false: rename controls
-        //  must stay HIDDEN until the user explicitly enables them via the
-        //  Show Rename Panel checkbox (this was the actual point of the
-        //  v1.5.15 fix for the Services Terminal Precision Mode conflict).
         // ─────────────────────────────────────────────────────────────
 
         private bool IsPanelVisible(IMyTerminalBlock block)
