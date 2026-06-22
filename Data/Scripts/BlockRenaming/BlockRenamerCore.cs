@@ -20,7 +20,7 @@ namespace BlockRenaming
     [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation)]
     public class BlockRenamerCore : MySessionComponentBase
     {
-        public const string MOD_VERSION = "1.5.27";
+        public const string MOD_VERSION = "1.5.30";
         public const ushort NETWORK_ID = 58432;
 
         private bool _isInitialized = false;
@@ -52,6 +52,7 @@ namespace BlockRenaming
         public override void LoadData()
         {
             MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(NETWORK_ID, OnMessageReceived);
+            MyLog.Default.WriteLine("BlockRenamer v" + MOD_VERSION + " initialized.");
         }
 
         protected override void UnloadData()
@@ -128,7 +129,7 @@ namespace BlockRenaming
             }
             catch (Exception ex)
             {
-                MyLog.Default.WriteLine(ex);
+                MyLog.Default.WriteLine("BlockRenamer: Error - " + ex.Message);
             }
         }
 
@@ -186,13 +187,17 @@ namespace BlockRenaming
             topSeparator.Label = MyStringId.GetOrCompute("------------------------------------------------------------------");
             list.Add(topSeparator);
 
-            // Visibility Toggle Checkbox
+            // Visibility Toggle Checkbox with Tips & Tricks Tooltip Help
             var showPanelCheckbox = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, IMyTerminalBlock>("Renamer_ShowPanelCheckbox");
             showPanelCheckbox.Enabled = (b) => true;
             showPanelCheckbox.Visible = (b) => true;
             showPanelCheckbox.SupportsMultipleBlocks = true;
             showPanelCheckbox.Title = MyStringId.GetOrCompute(string.Format("Show Rename v{0} Controls", MOD_VERSION));
-            showPanelCheckbox.Tooltip = MyStringId.GetOrCompute("Toggle visibility of all block renaming controls");
+            showPanelCheckbox.Tooltip = MyStringId.GetOrCompute(
+                "Toggle visibility of all block renaming controls.\n\n" +
+                "[TIP]: If the UI panel does not show or hide immediately due to game engine caching,\n" +
+                "simply select another block and click back to force an instant layout refresh."
+             );
             showPanelCheckbox.Getter = (b) => GlobalShowRenamePanel;
             showPanelCheckbox.Setter = (b, value) =>
             {
@@ -550,7 +555,7 @@ namespace BlockRenaming
             }
             catch (Exception ex)
             {
-                MyLog.Default.WriteLine(ex);
+                MyLog.Default.WriteLine("BlockRenamer: Error - " + ex.Message);
             }
         }
 

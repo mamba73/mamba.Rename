@@ -1,3 +1,12 @@
+## CHANGELOG v1.5.30
+ - [FIXED] Resolved compatibility conflicts with other terminal mods (e.g., 'Precision Mode').
+ - [FIXED] Aggressive UI refresh implemented to bypass game engine caching issues 
+           that caused terminal controls to appear 'grayed out' or unresponsive.
+ - [NEW]   Added 'Tips & Tricks' tooltip to the visibility checkbox; hover over 
+           it for a quick guide on how to force a layout refresh if needed.
+ - [CLEANUP] Removed all internal debug telemetry to ensure a cleaner log file 
+             and improved overall mod performance.
+
 ## CHANGELOG v1.5.21
  - [FIXED] Show/Hide checkbox now fully hides/shows the panel instantly.
            Replaced the unreliable temporary name-change hack with a strict `b.UpdateVisual()` 
@@ -45,3 +54,39 @@
            direct application works correctly in singleplayer, Torch+Pulsar, and MP.
  - [CHANGED] OnMessageReceived() now delegates to ApplyAction() instead of
              containing its own switch block. Kept registered but effectively unused.
+
+## CHANGELOG v1.5.12
+- [NEW] Extracted logic into `ApplyAction()` to eliminate code duplication
+between network events and local execution.
+- [FIXED] Fixed Pulsar/Singleplayer compatibility: `SendNetworkRequest()` now
+detects host status (`IsServer`). Actions are applied locally
+bypassing the network layer, preventing commands from being
+dropped by the Keen network handler.
+- [CHANGED] Refactored `OnMessageReceived()` to delegate all logic to
+`ApplyAction()`, ensuring consistent behavior across all
+deployment environments.
+
+## CHANGELOG v1.5.11
+- [IMPROVED] Number Separator now supports empty strings, allowing for
+compact sequential naming without delimiters (e.g., "Battery01"
+instead of "Battery 01").
+
+## CHANGELOG v1.5.4
+- [CHANGED] Updated workshop description to include documentation for newly
+implemented features and improved usage examples.
+
+## CHANGELOG v1.5.3
+- [NEW] Auto-Continue Numbering: Added support to toggle between continuous
+numbering and resetting to format when starting a new batch.
+- [NEW] Group by Block Type: Counters now operate independently per block
+type (e.g., Batteries and Thrusters maintain separate counts).
+- [NEW] Custom Number Separator: Users can now define custom delimiters
+between the base name and the number (space, dash, underscore, etc.).
+- [NEW] Counter Status Label: Introduced a real-time UI element displaying
+the next projected number for the selected grid and block type.
+
+## CHANGELOG v1.4.2
+ - [FIXED]   Regex Replace: Resolved pattern matching logic and corrected a 
+             networking issue that prevented regex operations from executing.
+ - [NEW]     Number Prefix: Added a new function to allow sequential numbering 
+             before the block name, rather than just as a suffix.
