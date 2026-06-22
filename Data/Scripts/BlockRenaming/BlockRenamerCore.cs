@@ -20,7 +20,7 @@ namespace BlockRenaming
     [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation)]
     public class BlockRenamerCore : MySessionComponentBase
     {
-        public const string MOD_VERSION = "1.5.23";
+        public const string MOD_VERSION = "1.5.27";
         public const ushort NETWORK_ID = 58432;
 
         private bool _isInitialized = false;
@@ -42,8 +42,8 @@ namespace BlockRenaming
         private static string GlobalThrusterTemplate = "Thruster {0}";
         private static bool AutoContinueNumbering = true;
 
-        private List<IMyTerminalControl> ControlsListMain = null;
-        private List<IMyTerminalControl> ControlsListThrusters = null;
+        private static List<IMyTerminalControl> ControlsListMain = null;
+        private static List<IMyTerminalControl> ControlsListThrusters = null;
 
         // ─────────────────────────────────────────────────────────────
         //  Lifecycle
@@ -133,6 +133,45 @@ namespace BlockRenaming
         }
 
         // ─────────────────────────────────────────────────────────────
+        //  Force UI Refresh Hack
+        // ─────────────────────────────────────────────────────────────
+        private static void ForceTerminalRefresh(IMyTerminalBlock block)
+        {
+            if (block == null) return;
+
+            // 1. Force refresh on the main block object
+            block.UpdateVisual();
+
+            // 2. Loop through all custom controls and force individual updates to bypass cache
+            if (ControlsListMain != null)
+            {
+                foreach (var ctrl in ControlsListMain)
+                {
+                    ctrl.UpdateVisual();
+                }
+            }
+            if (block is IMyThrust && ControlsListThrusters != null)
+            {
+                foreach (var ctrl in ControlsListThrusters)
+                {
+                    ctrl.UpdateVisual();
+                }
+            }
+
+            // 3. Defer the name change toggle to the next game thread frame to invalidate UI hierarchy layout
+            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+            {
+                var gui = MyAPIGateway.Gui;
+                if (gui != null && gui.GetCurrentScreen == MyTerminalPageEnum.ControlPanel)
+                {
+                    string currentName = block.CustomName;
+                    block.CustomName = currentName + " ";
+                    block.CustomName = currentName;
+                }
+            });
+        }
+
+        // ─────────────────────────────────────────────────────────────
         //  UI Factory - Main Controls
         // ─────────────────────────────────────────────────────────────
 
@@ -140,14 +179,14 @@ namespace BlockRenaming
         {
             var list = new List<IMyTerminalControl>();
 
-            // Top Custom Divider - FIXED unique ID to prevent engine conflicts
+            // Top Custom Divider
             var topSeparator = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlLabel, IMyTerminalBlock>("Renamer_Label_Top");
             topSeparator.Visible = (b) => true;
             topSeparator.SupportsMultipleBlocks = true;
-            topSeparator.Label = MyStringId.GetOrCompute("----------------------------------------");
+            topSeparator.Label = MyStringId.GetOrCompute("------------------------------------------------------------------");
             list.Add(topSeparator);
 
-            // Visibility Toggle Checkbox - Always Visible
+            // Visibility Toggle Checkbox
             var showPanelCheckbox = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, IMyTerminalBlock>("Renamer_ShowPanelCheckbox");
             showPanelCheckbox.Enabled = (b) => true;
             showPanelCheckbox.Visible = (b) => true;
@@ -157,23 +196,12 @@ namespace BlockRenaming
             showPanelCheckbox.Getter = (b) => GlobalShowRenamePanel;
             showPanelCheckbox.Setter = (b, value) =>
             {
-                try
-                {
-                    GlobalShowRenamePanel = value;
-                    if (b != null)
-                    {
-                        // Double-action refresh: standard UpdateVisual combined with safe custom name kick
-                        string originalName = b.CustomName;
-                        b.CustomName = originalName + " ";
-                        b.CustomName = originalName;
-                        b.UpdateVisual();
-                    }
-                }
-                catch { }
+                GlobalShowRenamePanel = value;
+                ForceTerminalRefresh(b);
             };
             list.Add(showPanelCheckbox);
 
-            // Main Label Panel Title - FIXED unique ID
+            // Main Label Panel Title
             var label0 = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlLabel, IMyTerminalBlock>("Renamer_Label_Title");
             label0.Visible = (b) => GlobalShowRenamePanel;
             label0.SupportsMultipleBlocks = true;
@@ -250,18 +278,11 @@ namespace BlockRenaming
             counterTxt.Setter = (b, Builder) => { if (b != null) TempCounterFormat[b] = Builder.ToString(); };
             list.Add(counterTxt);
 
-            // Current Counter Status Information Label - FIXED unique ID
+            // Current Counter Status Information Label
             var counterStatusLabel = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlLabel, IMyTerminalBlock>("Renamer_Label_CounterStatus");
-            counterStatusLabel.Visible = (b) =>
-            {
-                if (GlobalShowRenamePanel)
-                {
-                    counterStatusLabel.Label = MyStringId.GetOrCompute(GetCurrentCounterStatus(b));
-                    return true;
-                }
-                return false;
-            };
-            counterStatusLabel.SupportsMultipleBlocks = false;
+            counterStatusLabel.Visible = (b) => GlobalShowRenamePanel;
+            counterStatusLabel.SupportsMultipleBlocks = true;
+            counterStatusLabel.Label = MyStringId.GetOrCompute("Counter Status");
             list.Add(counterStatusLabel);
 
             // Sequential Continuous Numbering Toggle Checkbox
@@ -345,11 +366,11 @@ namespace BlockRenaming
             resetBtn.Action = (b) => { if (b != null) SendNetworkRequest(b, "RESET", ""); };
             list.Add(resetBtn);
 
-            // Regular Expressions Sub-Panel UI Section Separator - FIXED unique ID
+            // Regular Expressions Sub-Panel UI Section Separator
             var regexSep = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlLabel, IMyTerminalBlock>("Renamer_Label_RegexMid");
             regexSep.Visible = (b) => GlobalShowRenamePanel;
             regexSep.SupportsMultipleBlocks = true;
-            regexSep.Label = MyStringId.GetOrCompute("  - - - - - - - - - - - - - - - - - - -");
+            regexSep.Label = MyStringId.GetOrCompute("------------------------------------------------------------------");
             list.Add(regexSep);
 
             // Regex String Pattern Lookup Textbox
@@ -395,11 +416,11 @@ namespace BlockRenaming
             };
             list.Add(regexBtn);
 
-            // Bottom Separator - FIXED unique ID
+            // Bottom Separator
             var bottomSeparator = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlLabel, IMyTerminalBlock>("Renamer_Label_Bottom");
             bottomSeparator.Visible = (b) => true;
             bottomSeparator.SupportsMultipleBlocks = true;
-            bottomSeparator.Label = MyStringId.GetOrCompute("----------------------------------------");
+            bottomSeparator.Label = MyStringId.GetOrCompute("------------------------------------------------------------------");
             list.Add(bottomSeparator);
 
             return list;
@@ -413,11 +434,10 @@ namespace BlockRenaming
         {
             var list = new List<IMyTerminalControl>();
 
-            // Thruster Specific Divider - FIXED unique ID
             var thrusterSep = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlLabel, IMyThrust>("Renamer_Label_ThrusterTop");
             thrusterSep.Visible = (b) => GlobalShowRenamePanel;
             thrusterSep.SupportsMultipleBlocks = true;
-            thrusterSep.Label = MyStringId.GetOrCompute("  - - - - - - - - - - - - - - - - - - -");
+            thrusterSep.Label = MyStringId.GetOrCompute("------------------------------------------------------------------");
             list.Add(thrusterSep);
 
             var thrusterTxt = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlTextbox, IMyThrust>("TR_TemplateTextbox");
@@ -571,20 +591,6 @@ namespace BlockRenaming
             else if (direction == Vector3I.Right) letter = "L";
 
             thruster.CustomName = template.Contains("{0}") ? template.Replace("{0}", letter) : template + " " + letter;
-        }
-
-        private string GetCurrentCounterStatus(IMyTerminalBlock block)
-        {
-            if (block == null || block.CubeGrid == null) return "Counter: N/A";
-            int current = 0;
-            if (GroupByBlockType)
-            {
-                string typeName = block.DefinitionDisplayNameText ?? "Unknown";
-                if (BlockTypeCounters.TryGetValue(typeName, out current)) return string.Format("Next {0}: {1}", typeName, current);
-                return "Next: Ready";
-            }
-            if (GridNumberCounters.TryGetValue(block.CubeGrid.EntityId, out current)) return string.Format("Next Number: {0}", current);
-            return "Next: Ready";
         }
     }
 }
